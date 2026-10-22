@@ -10,6 +10,8 @@ import {
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
 // Notícias de tecnologia
 const noticiasTecnologia = [
@@ -69,27 +71,22 @@ const noticiasEsportes = [
 ];
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
 
 // Card reutilizável para cada notícia
 function CardNoticia({ noticia, aoPressionar }) {
   return (
-    <Pressable
-      style={styles.card}
-      onPress={aoPressionar}
-    >
+    <Pressable style={styles.card} onPress={aoPressionar}>
       <Text style={styles.categoria}>{noticia.categoria}</Text>
-
       <Text style={styles.titulo}>{noticia.titulo}</Text>
-
       <Text style={styles.descricao}>{noticia.descricao}</Text>
     </Pressable>
   );
 }
 
-// Lista de notícias
-function ListaNoticias({ route, navigation }) {
-  const noticias = route.params.noticias;
-
+// Tela com a lista de notícias
+function ListaNoticias({ noticias, navigation }) {
   return (
     <ScrollView style={styles.tela}>
       {noticias.map((noticia) => (
@@ -105,16 +102,14 @@ function ListaNoticias({ route, navigation }) {
   );
 }
 
-// Tela com o conteúdo completo da notícia
+// Tela com os detalhes completos da notícia
 function DetalhesNoticia({ route }) {
   const { noticia } = route.params;
 
   return (
     <ScrollView style={styles.telaDetalhes}>
       <Text style={styles.categoria}>{noticia.categoria}</Text>
-
       <Text style={styles.tituloDetalhes}>{noticia.titulo}</Text>
-
       <Text style={styles.descricaoDetalhes}>{noticia.descricao}</Text>
 
       <View style={styles.linha} />
@@ -124,18 +119,21 @@ function DetalhesNoticia({ route }) {
   );
 }
 
-// Navegação Stack de uma categoria
-function NavegacaoNoticias({ route }) {
-  const { categoria, noticias } = route.params;
-
+// Stack de Tecnologia
+function StackTecnologia() {
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="Lista"
-        component={ListaNoticias}
-        initialParams={{ noticias }}
-        options={{ title: categoria }}
-      />
+        options={{ title: 'Tecnologia' }}
+      >
+        {(props) => (
+          <ListaNoticias
+            {...props}
+            noticias={noticiasTecnologia}
+          />
+        )}
+      </Stack.Screen>
 
       <Stack.Screen
         name="Detalhes"
@@ -146,66 +144,84 @@ function NavegacaoNoticias({ route }) {
   );
 }
 
-// Tela inicial para escolher uma categoria
-function Inicio({ navigation }) {
+// Stack de Esportes
+function StackEsportes() {
   return (
-    <View style={styles.inicio}>
-      <Text style={styles.tituloInicio}>Mini App de Notícias</Text>
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Lista"
+        options={{ title: 'Esportes' }}
+      >
+        {(props) => (
+          <ListaNoticias
+            {...props}
+            noticias={noticiasEsportes}
+          />
+        )}
+      </Stack.Screen>
 
-      <Text style={styles.subtituloInicio}>
-        Escolha uma categoria para conferir as notícias.
+      <Stack.Screen
+        name="Detalhes"
+        component={DetalhesNoticia}
+        options={{ title: 'Detalhes da notícia' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Abas inferiores
+function AbasNoticias() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Tecnologia"
+        component={StackTecnologia}
+        options={{ headerShown: false }}
+      />
+
+      <Tab.Screen
+        name="Esportes"
+        component={StackEsportes}
+        options={{ headerShown: false }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+// Tela Sobre
+function TelaSobre() {
+  return (
+    <View style={styles.telaSobre}>
+      <Text style={styles.tituloSobre}>Sobre o aplicativo</Text>
+
+      <Text style={styles.textoSobre}>
+        Este é um Mini App de Notícias desenvolvido como atividade
+        de Desenvolvimento Mobile.
       </Text>
 
-      <Pressable
-        style={styles.botao}
-        onPress={() =>
-          navigation.navigate('Tecnologia', {
-            categoria: 'Tecnologia',
-            noticias: noticiasTecnologia,
-          })
-        }
-      >
-        <Text style={styles.textoBotao}>Tecnologia</Text>
-      </Pressable>
-
-      <Pressable
-        style={styles.botao}
-        onPress={() =>
-          navigation.navigate('Esportes', {
-            categoria: 'Esportes',
-            noticias: noticiasEsportes,
-          })
-        }
-      >
-        <Text style={styles.textoBotao}>Esportes</Text>
-      </Pressable>
+      <Text style={styles.textoSobre}>
+        O aplicativo apresenta notícias de Tecnologia e Esportes e
+        utiliza navegação Drawer, Bottom Tabs e Stack.
+      </Text>
     </View>
   );
 }
 
-// Navegação principal temporária
+// Menu lateral principal
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Inicio"
-          component={Inicio}
-          options={{ title: 'Notícias' }}
+      <Drawer.Navigator initialRouteName="Notícias">
+        <Drawer.Screen
+          name="Notícias"
+          component={AbasNoticias}
         />
 
-        <Stack.Screen
-          name="Tecnologia"
-          component={NavegacaoNoticias}
-          options={{ headerShown: false }}
+        <Drawer.Screen
+          name="Sobre"
+          component={TelaSobre}
         />
-
-        <Stack.Screen
-          name="Esportes"
-          component={NavegacaoNoticias}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
+      </Drawer.Navigator>
     </NavigationContainer>
   );
 }
@@ -265,35 +281,21 @@ const styles = StyleSheet.create({
     lineHeight: 27,
     color: '#333333',
   },
-  inicio: {
+  telaSobre: {
     flex: 1,
-    justifyContent: 'center',
     padding: 24,
     backgroundColor: '#f2f2f2',
   },
-  tituloInicio: {
-    fontSize: 28,
+  tituloSobre: {
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     color: '#222222',
   },
-  subtituloInicio: {
+  textoSobre: {
     fontSize: 16,
-    textAlign: 'center',
-    color: '#555555',
-    marginBottom: 28,
-  },
-  botao: {
-    backgroundColor: '#1769aa',
-    padding: 18,
-    borderRadius: 10,
-    marginBottom: 14,
-    alignItems: 'center',
-  },
-  textoBotao: {
-    color: '#ffffff',
-    fontSize: 17,
-    fontWeight: 'bold',
+    lineHeight: 25,
+    color: '#444444',
+    marginBottom: 16,
   },
 });

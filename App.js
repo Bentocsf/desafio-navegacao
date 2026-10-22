@@ -3,11 +3,15 @@ import React from 'react';
 import {
   StyleSheet,
   Text,
+  View,
   ScrollView,
   Pressable,
-  View,
 } from 'react-native';
 
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+// Notícias de tecnologia
 const noticiasTecnologia = [
   {
     id: '1',
@@ -35,6 +39,7 @@ const noticiasTecnologia = [
   },
 ];
 
+// Notícias de esportes
 const noticiasEsportes = [
   {
     id: '4',
@@ -56,73 +61,152 @@ const noticiasEsportes = [
     id: '6',
     categoria: 'ESPORTES',
     titulo: 'Maratonista surpreende',
-    descricao: 'Atleta vence prova de rua e estabelece melhor marca pessoal.',
+    descricao:
+      'Atleta vence prova de rua e estabelece melhor marca pessoal.',
     conteudo:
       'Em uma prova marcada por forte calor, o maratonista alcançou o melhor tempo de sua carreira.',
   },
 ];
 
-function CardNoticia({ categoria, titulo, descricao, onPress }) {
+const Stack = createNativeStackNavigator();
+
+// Card reutilizável para cada notícia
+function CardNoticia({ noticia, aoPressionar }) {
   return (
-    <Pressable onPress={onPress} style={styles.card}>
-      <Text style={styles.categoria}>{categoria}</Text>
-      <Text style={styles.titulo}>{titulo}</Text>
-      <Text style={styles.descricao}>{descricao}</Text>
+    <Pressable
+      style={styles.card}
+      onPress={aoPressionar}
+    >
+      <Text style={styles.categoria}>{noticia.categoria}</Text>
+
+      <Text style={styles.titulo}>{noticia.titulo}</Text>
+
+      <Text style={styles.descricao}>{noticia.descricao}</Text>
     </Pressable>
   );
 }
 
-function ListaNoticias({ noticias, aoSelecionarNoticia }) {
+// Lista de notícias
+function ListaNoticias({ route, navigation }) {
+  const noticias = route.params.noticias;
+
   return (
-    <ScrollView style={styles.lista}>
+    <ScrollView style={styles.tela}>
       {noticias.map((noticia) => (
         <CardNoticia
           key={noticia.id}
-          categoria={noticia.categoria}
-          titulo={noticia.titulo}
-          descricao={noticia.descricao}
-          onPress={() => aoSelecionarNoticia(noticia)}
+          noticia={noticia}
+          aoPressionar={() =>
+            navigation.navigate('Detalhes', { noticia })
+          }
         />
       ))}
     </ScrollView>
   );
 }
 
-function TelaTecnologia({ aoSelecionarNoticia }) {
-  return (
-    <ListaNoticias
-      noticias={noticiasTecnologia}
-      aoSelecionarNoticia={aoSelecionarNoticia}
-    />
-  );
-}
-
-function TelaEsportes({ aoSelecionarNoticia }) {
-  return (
-    <ListaNoticias
-      noticias={noticiasEsportes}
-      aoSelecionarNoticia={aoSelecionarNoticia}
-    />
-  );
-}
-
-export default function App() {
-  function selecionarNoticia(noticia) {
-    console.log('Notícia selecionada:', noticia.titulo);
-  }
+// Tela com o conteúdo completo da notícia
+function DetalhesNoticia({ route }) {
+  const { noticia } = route.params;
 
   return (
-    <ScrollView style={styles.tela}>
-      <Text style={styles.tituloSecao}>Tecnologia</Text>
-      <View style={styles.secao}>
-        <TelaTecnologia aoSelecionarNoticia={selecionarNoticia} />
-      </View>
+    <ScrollView style={styles.telaDetalhes}>
+      <Text style={styles.categoria}>{noticia.categoria}</Text>
 
-      <Text style={styles.tituloSecao}>Esportes</Text>
-      <View style={styles.secao}>
-        <TelaEsportes aoSelecionarNoticia={selecionarNoticia} />
-      </View>
+      <Text style={styles.tituloDetalhes}>{noticia.titulo}</Text>
+
+      <Text style={styles.descricaoDetalhes}>{noticia.descricao}</Text>
+
+      <View style={styles.linha} />
+
+      <Text style={styles.conteudo}>{noticia.conteudo}</Text>
     </ScrollView>
+  );
+}
+
+// Navegação Stack de uma categoria
+function NavegacaoNoticias({ route }) {
+  const { categoria, noticias } = route.params;
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Lista"
+        component={ListaNoticias}
+        initialParams={{ noticias }}
+        options={{ title: categoria }}
+      />
+
+      <Stack.Screen
+        name="Detalhes"
+        component={DetalhesNoticia}
+        options={{ title: 'Detalhes da notícia' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Tela inicial para escolher uma categoria
+function Inicio({ navigation }) {
+  return (
+    <View style={styles.inicio}>
+      <Text style={styles.tituloInicio}>Mini App de Notícias</Text>
+
+      <Text style={styles.subtituloInicio}>
+        Escolha uma categoria para conferir as notícias.
+      </Text>
+
+      <Pressable
+        style={styles.botao}
+        onPress={() =>
+          navigation.navigate('Tecnologia', {
+            categoria: 'Tecnologia',
+            noticias: noticiasTecnologia,
+          })
+        }
+      >
+        <Text style={styles.textoBotao}>Tecnologia</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.botao}
+        onPress={() =>
+          navigation.navigate('Esportes', {
+            categoria: 'Esportes',
+            noticias: noticiasEsportes,
+          })
+        }
+      >
+        <Text style={styles.textoBotao}>Esportes</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// Navegação principal temporária
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Inicio"
+          component={Inicio}
+          options={{ title: 'Notícias' }}
+        />
+
+        <Stack.Screen
+          name="Tecnologia"
+          component={NavegacaoNoticias}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="Esportes"
+          component={NavegacaoNoticias}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -130,13 +214,6 @@ const styles = StyleSheet.create({
   tela: {
     flex: 1,
     backgroundColor: '#f2f2f2',
-    paddingTop: 16,
-  },
-  lista: {
-    flexGrow: 0,
-  },
-  secao: {
-    marginBottom: 12,
   },
   card: {
     backgroundColor: '#ffffff',
@@ -149,22 +226,74 @@ const styles = StyleSheet.create({
   categoria: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: 'blue',
+    color: '#1769aa',
     marginBottom: 6,
   },
   titulo: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
-  },
-  tituloSecao: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginHorizontal: 16,
-    marginBottom: 4,
+    color: '#222222',
   },
   descricao: {
     fontSize: 14,
     color: '#555555',
+  },
+  telaDetalhes: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    padding: 20,
+  },
+  tituloDetalhes: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#222222',
+    marginBottom: 12,
+  },
+  descricaoDetalhes: {
+    fontSize: 16,
+    color: '#555555',
+    lineHeight: 24,
+  },
+  linha: {
+    height: 1,
+    backgroundColor: '#dddddd',
+    marginVertical: 20,
+  },
+  conteudo: {
+    fontSize: 17,
+    lineHeight: 27,
+    color: '#333333',
+  },
+  inicio: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#f2f2f2',
+  },
+  tituloInicio: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+    color: '#222222',
+  },
+  subtituloInicio: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#555555',
+    marginBottom: 28,
+  },
+  botao: {
+    backgroundColor: '#1769aa',
+    padding: 18,
+    borderRadius: 10,
+    marginBottom: 14,
+    alignItems: 'center',
+  },
+  textoBotao: {
+    color: '#ffffff',
+    fontSize: 17,
+    fontWeight: 'bold',
   },
 });

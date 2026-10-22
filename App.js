@@ -1,6 +1,12 @@
 
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  ScrollView,
+  Pressable,
+  View,
+} from 'react-native';
 
 const noticiasTecnologia = [
   {
@@ -66,27 +72,71 @@ function CardNoticia({ categoria, titulo, descricao, onPress }) {
   );
 }
 
-export default function App() {
+function ListaNoticias({ noticias, aoSelecionarNoticia }) {
   return (
     <ScrollView style={styles.lista}>
-      {noticiasTecnologia.map((noticia) => (
+      {noticias.map((noticia) => (
         <CardNoticia
           key={noticia.id}
           categoria={noticia.categoria}
           titulo={noticia.titulo}
           descricao={noticia.descricao}
-          onPress={() => console.log('Notícia selecionada:', noticia.titulo)}
+          onPress={() => aoSelecionarNoticia(noticia)}
         />
       ))}
     </ScrollView>
   );
 }
 
+function TelaTecnologia({ aoSelecionarNoticia }) {
+  return (
+    <ListaNoticias
+      noticias={noticiasTecnologia}
+      aoSelecionarNoticia={aoSelecionarNoticia}
+    />
+  );
+}
+
+function TelaEsportes({ aoSelecionarNoticia }) {
+  return (
+    <ListaNoticias
+      noticias={noticiasEsportes}
+      aoSelecionarNoticia={aoSelecionarNoticia}
+    />
+  );
+}
+
+export default function App() {
+  function selecionarNoticia(noticia) {
+    console.log('Notícia selecionada:', noticia.titulo);
+  }
+
+  return (
+    <ScrollView style={styles.tela}>
+      <Text style={styles.tituloSecao}>Tecnologia</Text>
+      <View style={styles.secao}>
+        <TelaTecnologia aoSelecionarNoticia={selecionarNoticia} />
+      </View>
+
+      <Text style={styles.tituloSecao}>Esportes</Text>
+      <View style={styles.secao}>
+        <TelaEsportes aoSelecionarNoticia={selecionarNoticia} />
+      </View>
+    </ScrollView>
+  );
+}
+
 const styles = StyleSheet.create({
-  lista: {
+  tela: {
     flex: 1,
     backgroundColor: '#f2f2f2',
-    paddingTop: 8,
+    paddingTop: 16,
+  },
+  lista: {
+    flexGrow: 0,
+  },
+  secao: {
+    marginBottom: 12,
   },
   card: {
     backgroundColor: '#ffffff',
@@ -106,6 +156,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
+  },
+  tituloSecao: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginHorizontal: 16,
+    marginBottom: 4,
   },
   descricao: {
     fontSize: 14,
